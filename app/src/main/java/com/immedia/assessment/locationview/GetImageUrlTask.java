@@ -12,10 +12,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Created by Rudolph on 2016/06/10.
  */
-public class GetImageUrlTask extends AsyncTask<String, Void, String[]> {
+public class GetImageUrlTask extends AsyncTask<String, Void, ArrayList<ImageProfile>> {
 
     public AsyncUrlResponse delegate = null;
     public GetImageUrlTask(AsyncUrlResponse response)
@@ -25,37 +27,49 @@ public class GetImageUrlTask extends AsyncTask<String, Void, String[]> {
     }
 
     @Override
-    protected String[] doInBackground(String... params) {
+    protected void onPostExecute(ArrayList<ImageProfile> image) {
+        super.onPostExecute(image);
+        delegate.processFinish(image);
+    }
+
+    @Override
+    protected ArrayList<ImageProfile> doInBackground(String... params) {
+        final ArrayList<ImageProfile> image = new ArrayList<ImageProfile>();
         String url = params[0];
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("RESPONSE", "Get Url Response = " + response.toString());
                         try {
                             JSONObject jsonObject = response;
                             JSONArray jsonArray = jsonObject.getJSONArray("data");
                             for (int index = 0; index < jsonArray.length(); index++) {
+                                ImageProfile imageProfile = new ImageProfile();
                                 JSONObject dataId = jsonArray.getJSONObject(index);
                                 JSONObject images = dataId.getJSONObject("images");
+                                JSONObject caption = dataId.getJSONObject("caption");
+                                String cap = caption.getString("text");
                                 JSONObject thumbnail = images.getJSONObject("thumbnail");
                                 String url = thumbnail.getString("url");
-                                Log.i("URL", url);
-                            }
+                                imageProfile.setCaption(cap);
+                                imageProfile.setUrl(url);
+                                image.add(imageProfile);
 
+                            }
                         } catch (JSONException je) {
-                            Log.i("COUNT", "JSONException: " + je.getMessage());
+                            je.printStackTrace();
                         }
+                        GetImageUrlTask.this.onPostExecute(image);
                     }
                 }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO Auto-generated method stub
-                        Log.i("COUNT", "Login ERROR" + error.getMessage());
+                        error.printStackTrace();
                     }
                 });
         AppController.getInstance().addToRequestQueue(jsObjRequest);
-        return new String[0];
+        return image;
     }
 }

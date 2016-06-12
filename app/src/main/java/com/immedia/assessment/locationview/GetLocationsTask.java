@@ -1,7 +1,6 @@
 package com.immedia.assessment.locationview;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -22,8 +21,8 @@ public class GetLocationsTask extends AsyncTask<String, Void, HashMap<String, In
     private HashMap<Integer, String> h;
     private List<String> list;
     public AsyncLocationResponse delegate = null;
-    public GetLocationsTask(AsyncLocationResponse response)
-    {
+
+    public GetLocationsTask(AsyncLocationResponse response){
         super();
         delegate = response;
     }
@@ -56,20 +55,17 @@ public class GetLocationsTask extends AsyncTask<String, Void, HashMap<String, In
                                     JSONArray jsonArray = jsonObject.getJSONArray("data");
                                     for (int index = 0; index < jsonArray.length(); index++) {
                                         JSONObject dataId = jsonArray.getJSONObject(index);
-                                        Log.i("COUNT", " Going into map = " +dataId.getString("name")+ " " +dataId.getInt("id"));
                                         hashMap.put(dataId.getString("name"), dataId.getInt("id"));
                                     }
                                     GetLocationsTask.this.onPostExecute(hashMap);
-
                                 } catch (JSONException je) {
-                                    Log.i("COUNT", "JSONException: " + je.getMessage());
+                                    je.printStackTrace();
                                 }
                             }
                         }, new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                // TODO Auto-generated method stub
-                                Log.i("COUNT", "Login ERROR" + error.getMessage());
+                                error.getMessage();
                             }
                         });
                 AppController.getInstance().addToRequestQueue(jsObjRequest);
